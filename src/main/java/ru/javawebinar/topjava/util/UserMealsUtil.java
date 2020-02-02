@@ -28,26 +28,25 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        Map<Integer,Integer> map = new HashMap<>();
+        Map<LocalDateTime,Integer> map = new HashMap<>();
         List<UserMealWithExcess> userMealWithExcessList = new LinkedList<>();
         for (UserMeal meal : meals) {
-            map.merge(meal.getDateTime().getDayOfMonth(), meal.getCalories(), Integer::sum);
+            map.merge(meal.getDateTime(), meal.getCalories(), Integer::sum);
         }
         for (UserMeal meal : meals) {
             if (TimeUtil.isBetweenInclusive(meal.getDateTime().toLocalTime(),startTime,endTime)) {
                 userMealWithExcessList.add(new UserMealWithExcess(meal.getDateTime(),
-                        meal.getDescription(), meal.getCalories(),
-                        map.get(meal.getDateTime().getDayOfMonth()) > caloriesPerDay));
+                        meal.getDescription(), meal.getCalories(), map.get(meal.getDateTime()) > caloriesPerDay));
             }
         }
         return userMealWithExcessList;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        Map<Integer,Integer> map = meals.stream().collect(Collectors.toMap((m) -> m.getDateTime().getDayOfMonth(),
+        Map<LocalDateTime,Integer> map = meals.stream().collect(Collectors.toMap(UserMeal::getDateTime,
                 UserMeal::getCalories, Integer::sum));
         return meals.stream().filter((m) -> TimeUtil.isBetweenInclusive(m.getDateTime().toLocalTime(),startTime,endTime)).
                 map((m) -> new UserMealWithExcess(m.getDateTime(),m.getDescription(),m.getCalories(),
-                        map.get(m.getDateTime().getDayOfMonth()) > caloriesPerDay)).collect(Collectors.toList());
+                        map.get(m.getDateTime()) > caloriesPerDay)).collect(Collectors.toList());
     }
 }
