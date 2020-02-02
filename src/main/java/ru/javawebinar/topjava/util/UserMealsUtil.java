@@ -29,10 +29,10 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         Map<LocalDateTime,Integer> map = new HashMap<>();
-        List<UserMealWithExcess> userMealWithExcessList = new LinkedList<>();
         for (UserMeal meal : meals) {
             map.merge(meal.getDateTime(), meal.getCalories(), Integer::sum);
         }
+        List<UserMealWithExcess> userMealWithExcessList = new LinkedList<>();
         for (UserMeal meal : meals) {
             if (TimeUtil.isBetweenInclusive(meal.getDateTime().toLocalTime(),startTime,endTime)) {
                 userMealWithExcessList.add(new UserMealWithExcess(meal.getDateTime(),
@@ -43,10 +43,11 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        Map<LocalDateTime,Integer> map = meals.stream().collect(Collectors.toMap(UserMeal::getDateTime,
-                UserMeal::getCalories, Integer::sum));
-        return meals.stream().filter((m) -> TimeUtil.isBetweenInclusive(m.getDateTime().toLocalTime(),startTime,endTime)).
-                map((m) -> new UserMealWithExcess(m.getDateTime(),m.getDescription(),m.getCalories(),
+        Map<LocalDateTime,Integer> map = meals.stream()
+                .collect(Collectors.toMap(UserMeal::getDateTime, UserMeal::getCalories, Integer::sum));
+        return meals.stream()
+                .filter((m) -> TimeUtil.isBetweenInclusive(m.getDateTime().toLocalTime(),startTime,endTime))
+                .map((m) -> new UserMealWithExcess(m.getDateTime(),m.getDescription(),m.getCalories(),
                         map.get(m.getDateTime()) > caloriesPerDay)).collect(Collectors.toList());
     }
 }
