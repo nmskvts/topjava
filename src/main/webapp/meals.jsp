@@ -22,19 +22,19 @@
     <h3><a href="index.html">Home</a></h3>
     <div align="center">
     <table>
-        <caption><h2>List of Meals</h2></caption>
+        <caption><h2>Список еды</h2></caption>
         <tr>
             <th>Время/Дата</th>
             <th>Описание</th>
             <th>Калории</th>
         </tr>
             <c:forEach var="meal" items="${requestScope.mealList}">
-                <fmt:parseDate value="${meal.getDateTime()}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"/>
+                <fmt:parseDate value="${meal.dateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"/>
                 <fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${parsedDateTime}" var="mealDate"/>
                 <tr class="${meal.isExcess() ? 'excess' : 'normal'}">
                     <td><c:out value="${mealDate}"></c:out></td>
-                    <td><c:out value="${meal.getDescription()}"></c:out></td>
-                    <td><c:out value="${meal.getCalories()}"></c:out></td>
+                    <td><c:out value="${meal.description}"></c:out></td>
+                    <td><c:out value="${meal.calories}"></c:out></td>
                 </tr>
             </c:forEach>
     </table>
