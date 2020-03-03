@@ -1,7 +1,7 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,6 +14,10 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
@@ -32,20 +36,43 @@ public class MealServiceTest {
     @Autowired
     private MealRepository repository;
 
+    private static final Logger logger = Logger.getLogger("");
+    private static List<String> finishedTime = new ArrayList<>();
+
+    @Rule
+    public Stopwatch stopwatch = new Stopwatch();
+
+    @After
+    public void logRuntime() {
+        logger.info("Test finished after " + stopwatch.runtime(TimeUnit.MILLISECONDS) + " millis");
+    }
+
+    @AfterClass
+    public static void showRuntimeForAllTests() {
+        finishedTime.forEach(System.out::println);
+    }
+
+    private void logRuntime(String testName, long millis) {
+        finishedTime.add("Test " + testName + " - " + millis + " millis");
+    }
+
     @Test
     public void delete() throws Exception {
         service.delete(MEAL1_ID, USER_ID);
         Assert.assertNull(repository.get(MEAL1_ID, USER_ID));
+        logRuntime("delete",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void deleteNotFound() throws Exception {
-        service.delete(1, USER_ID);
+        Assert.assertThrows(NotFoundException.class, () -> service.delete(1, USER_ID));
+        logRuntime("deleteNotFound",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void deleteNotOwn() throws Exception {
-        service.delete(MEAL1_ID, ADMIN_ID);
+        Assert.assertThrows(NotFoundException.class, () -> service.delete(MEAL1_ID, ADMIN_ID));
+        logRuntime("deleteNotOwn",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -56,22 +83,26 @@ public class MealServiceTest {
         newMeal.setId(newId);
         MEAL_MATCHER.assertMatch(created, newMeal);
         MEAL_MATCHER.assertMatch(service.get(newId, USER_ID), newMeal);
+        logRuntime("create",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
     public void get() throws Exception {
         Meal actual = service.get(ADMIN_MEAL_ID, ADMIN_ID);
         MEAL_MATCHER.assertMatch(actual, ADMIN_MEAL1);
+        logRuntime("get",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void getNotFound() throws Exception {
-        service.get(1, USER_ID);
+        Assert.assertThrows(NotFoundException.class, () -> service.get(1, USER_ID));
+        logRuntime("getNotFound",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void getNotOwn() throws Exception {
-        service.get(MEAL1_ID, ADMIN_ID);
+        Assert.assertThrows(NotFoundException.class, () -> service.get(MEAL1_ID, ADMIN_ID));
+        logRuntime("getNotOwn",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -79,16 +110,19 @@ public class MealServiceTest {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
         MEAL_MATCHER.assertMatch(service.get(MEAL1_ID, USER_ID), updated);
+        logRuntime("update",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void updateNotFound() throws Exception {
-        service.update(MEAL1, ADMIN_ID);
+        Assert.assertThrows(NotFoundException.class, () -> service.update(MEAL1, ADMIN_ID));
+        logRuntime("updateNotFound",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
     public void getAll() throws Exception {
         MEAL_MATCHER.assertMatch(service.getAll(USER_ID), MEALS);
+        logRuntime("getAll",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -97,10 +131,12 @@ public class MealServiceTest {
                 LocalDate.of(2020, Month.JANUARY, 30),
                 LocalDate.of(2020, Month.JANUARY, 30), USER_ID),
                 MEAL3, MEAL2, MEAL1);
+        logRuntime("getBetweenInclusive",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 
     @Test
     public void getBetweenWithNullDates() throws Exception {
         MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), MEALS);
+        logRuntime("getBetweenWithNullDates",stopwatch.runtime(TimeUnit.MILLISECONDS));
     }
 }
